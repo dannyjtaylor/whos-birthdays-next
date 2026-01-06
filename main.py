@@ -56,6 +56,35 @@ def add_birthday():
     
     return jsonify(birthday), 201
 
+@app.route('/api/birthdays/<int:birthday_id>', methods=['PUT'])
+def update_birthday(birthday_id):
+    data = request.json
+    birthdays = load_birthdays()
+    
+    # Find birthday to update
+    birthday_index = next((i for i, b in enumerate(birthdays) if b.get('id') == birthday_id), None)
+    if birthday_index is None:
+        return jsonify({'error': 'Birthday not found'}), 404
+    
+    # Validate
+    name = data.get('name', '').strip()
+    month = int(data.get('month'))
+    day = int(data.get('day'))
+    
+    # Check for duplicates (excluding current birthday)
+    if any(b['name'].lower() == name.lower() and b['month'] == month and b['day'] == day 
+           and b.get('id') != birthday_id for b in birthdays):
+        return jsonify({'error': 'Birthday already exists'}), 400
+    
+    # Update birthday
+    birthdays[birthday_index]['name'] = name
+    birthdays[birthday_index]['month'] = month
+    birthdays[birthday_index]['day'] = day
+    birthdays[birthday_index]['updated_at'] = datetime.now().isoformat()
+    
+    save_birthdays(birthdays)
+    return jsonify(birthdays[birthday_index])
+
 @app.route('/api/birthdays/<int:birthday_id>', methods=['DELETE'])
 def delete_birthday(birthday_id):
     birthdays = load_birthdays()

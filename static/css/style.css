@@ -24,12 +24,15 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: var(--bg-dark);
     color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Background Animation */
@@ -134,7 +137,7 @@ body {
 }
 
 .logo {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-size: clamp(2rem, 5vw, 3.5rem);
     font-weight: 700;
     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
@@ -237,7 +240,7 @@ body {
     font-weight: 600;
     color: var(--text-primary);
     font-size: 1rem;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .upcoming-date {
@@ -250,7 +253,7 @@ body {
     font-size: 0.875rem;
     padding: 0.5rem 1rem;
     border-radius: 8px;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .upcoming-item.upcoming-today {
@@ -314,7 +317,7 @@ body {
 
 .panel-header h2,
 .panel-header h3 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-primary);
@@ -375,7 +378,7 @@ body {
     padding: 0.875rem 1rem;
     color: var(--text-primary);
     font-size: 1rem;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     transition: all 0.3s ease;
     outline: none;
 }
@@ -390,13 +393,145 @@ body {
     color: var(--text-muted);
 }
 
+/* Number input spinner styling */
+.input-field[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.input-field[type="number"]::-webkit-inner-spin-button,
+.input-field[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Custom number input controls */
+.input-group {
+    position: relative;
+}
+
+.input-field[type="number"] {
+    padding-right: 3rem;
+}
+
+.number-controls {
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 1;
+    pointer-events: none;
+    height: calc(100% - 1rem);
+}
+
+.number-controls .number-btn {
+    pointer-events: all;
+}
+
+.number-btn {
+    width: 18px;
+    height: calc(50% - 0.125rem);
+    min-height: 18px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    transition: all 0.2s ease;
+    line-height: 1;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.number-btn:hover {
+    background: rgba(99, 102, 241, 0.3);
+    border-color: var(--primary);
+    color: var(--primary-light);
+}
+
+.number-btn:active {
+    background: var(--primary);
+    transform: scale(0.95);
+}
+
+.number-btn-up::before {
+    content: '▲';
+    font-size: 0.5rem;
+    line-height: 1;
+}
+
+.number-btn-down::before {
+    content: '▼';
+    font-size: 0.5rem;
+    line-height: 1;
+}
+
 .select-field {
     cursor: pointer;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    padding-right: 2.5rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 1rem;
+    position: relative;
+    color-scheme: dark;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.select-field:hover {
+    border-color: var(--primary-light);
+}
+
+.select-field:focus {
+    border-color: var(--primary);
+}
+
+/* Style options - helps in browsers that support it */
+.select-field option {
+    background-color: var(--bg-dark) !important;
+    background: var(--bg-dark) !important;
+    color: var(--text-primary) !important;
+    padding: 0.875rem 1rem;
+    border: none;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 1rem;
+    min-height: 44px;
+}
+
+.select-field option:checked,
+.select-field option[selected],
+.select-field option:focus {
+    background-color: rgba(99, 102, 241, 0.2) !important;
+    background: rgba(99, 102, 241, 0.2) !important;
+    color: var(--primary-light) !important;
+    font-weight: 500;
+}
+
+.select-field option:hover {
+    background-color: rgba(99, 102, 241, 0.3) !important;
+    background: rgba(99, 102, 241, 0.3) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Hide default dropdown arrow for IE/Edge */
+.select-field::-ms-expand {
+    display: none;
+}
+
+/* Firefox specific styling */
+@-moz-document url-prefix() {
+    .select-field option {
+        background-color: var(--bg-dark);
+        color: var(--text-primary);
+    }
 }
 
 .input-underline {
@@ -415,7 +550,6 @@ body {
 
 /* Submit Button */
 .submit-btn {
-    width: 100%;
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     border: none;
     border-radius: 12px;
@@ -423,7 +557,7 @@ body {
     color: white;
     font-size: 1rem;
     font-weight: 600;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -432,6 +566,10 @@ body {
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+}
+
+.birthday-form .submit-btn {
+    width: 100%;
 }
 
 .submit-btn::before {
@@ -472,6 +610,64 @@ body {
     margin-top: 2rem;
 }
 
+.search-container {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.search-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.875rem 2.5rem 0.875rem 1rem;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.search-input:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.clear-search-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+}
+
+.search-results-count {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    display: none;
+}
+
 .birthdays-list {
     max-height: 400px;
     overflow-y: auto;
@@ -503,6 +699,7 @@ body {
     align-items: center;
     transition: all 0.3s ease;
     animation: slideInRight 0.4s ease-out;
+    gap: 1rem;
 }
 
 .birthday-item:hover {
@@ -514,6 +711,36 @@ body {
 .birthday-item span {
     color: var(--text-primary);
     font-weight: 500;
+    flex: 1;
+}
+
+.birthday-item mark {
+    background: rgba(99, 102, 241, 0.3);
+    color: var(--primary-light);
+    padding: 0 2px;
+    border-radius: 3px;
+}
+
+.birthday-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.edit-btn {
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    color: var(--primary-light);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.edit-btn:hover {
+    background: rgba(99, 102, 241, 0.3);
+    transform: scale(1.05);
 }
 
 .delete-btn {
@@ -581,7 +808,7 @@ body {
 .today-btn {
     width: auto;
     padding: 0 1rem;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-weight: 600;
     font-size: 0.875rem;
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -595,7 +822,7 @@ body {
 }
 
 .current-month {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-primary);
@@ -639,7 +866,7 @@ body {
     font-size: 0.875rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .calendar-day {
@@ -923,7 +1150,7 @@ body {
 }
 
 .day-modal-header h3 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-primary);
@@ -978,6 +1205,10 @@ body {
     margin-bottom: 0.75rem;
     transition: all 0.3s ease;
     animation: slideInRight 0.4s ease-out;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
 }
 
 .day-modal-birthday:hover {
@@ -990,7 +1221,121 @@ body {
     font-weight: 600;
     color: var(--text-primary);
     font-size: 1.1rem;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    flex: 1;
+}
+
+.day-modal-birthday-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.day-modal-birthday-actions .edit-btn,
+.day-modal-birthday-actions .delete-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.cancel-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.submit-btn {
+    flex: 1;
+}
+
+.delete-modal-content {
+    max-width: 450px;
+}
+
+.delete-confirmation {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.delete-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.delete-confirmation p {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+.delete-birthday-info {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.delete-birthday-details {
+    color: var(--text-primary);
+}
+
+.delete-birthday-details strong {
+    font-size: 1.2rem;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.delete-birthday-details span {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.delete-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.confirm-delete-btn {
+    flex: 1;
+    background: linear-gradient(135deg, var(--error) 0%, #dc2626 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.confirm-delete-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+}
+
+.confirm-delete-btn:active {
+    transform: translateY(0);
 }
 
 .day-modal-empty {

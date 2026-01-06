@@ -3,10 +3,14 @@ const API_BASE = '/api';
 
 // State
 let birthdays = [];
+let filteredBirthdays = [];
+let searchQuery = '';
 let currentDate = new Date();
 let currentMonth = currentDate.getMonth();
 let currentYear = currentDate.getFullYear();
 const MAX_YEAR = 2100;
+let editingBirthdayId = null;
+let deletingBirthdayId = null;
 
 const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -30,6 +34,26 @@ function setupEventListeners() {
     document.getElementById('prevMonth').addEventListener('click', () => navigateMonth(-1));
     document.getElementById('nextMonth').addEventListener('click', () => navigateMonth(1));
     document.getElementById('todayBtn').addEventListener('click', jumpToToday);
+    
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const clearSearch = document.getElementById('clearSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+    }
+    if (clearSearch) {
+        clearSearch.addEventListener('click', clearSearchInput);
+    }
+    
+    // Edit form
+    document.getElementById('editBirthdayForm').addEventListener('submit', handleEditSubmit);
+    document.getElementById('editCancelBtn').addEventListener('click', closeEditModal);
+    document.getElementById('editModalClose').addEventListener('click', closeEditModal);
+    
+    // Delete confirmation
+    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+    document.getElementById('deleteCancelBtn').addEventListener('click', closeDeleteModal);
+    document.getElementById('deleteModalClose').addEventListener('click', closeDeleteModal);
 }
 
 // API Functions
@@ -69,9 +93,55 @@ async function addBirthday(name, month, day) {
     }
 }
 
-async function deleteBirthday(birthdayId) {
+async function updateBirthday(birthdayId, name, month, day) {
     try {
         const response = await fetch(`${API_BASE}/birthdays/${birthdayId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, month, day }),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to update birthday');
+        }
+
+        const updatedBirthday = await response.json();
+        const index = birthdays.findIndex(b => b.id === birthdayId);
+        if (index !== -1) {
+            birthdays[index] = updatedBirthday;
+        }
+        return updatedBirthday;
+    } catch (error) {
+        throw error;
+    }
+}
+
+function showDeleteConfirmation(birthdayId) {
+    const birthday = birthdays.find(b => b.id === birthdayId);
+    if (!birthday) return;
+    
+    deletingBirthdayId = birthdayId;
+    const modal = document.getElementById('deleteModal');
+    const info = document.getElementById('deleteBirthdayInfo');
+    
+    info.innerHTML = `
+        <div class="delete-birthday-details">
+            <strong>${birthday.name}</strong><br>
+            <span>${monthNames[birthday.month]} ${birthday.day}</span>
+        </div>
+    `;
+    
+    modal.classList.add('show');
+}
+
+async function confirmDelete() {
+    if (!deletingBirthdayId) return;
+    
+    try {
+        const response = await fetch(`${API_BASE}/birthdays/${deletingBirthdayId}`, {
             method: 'DELETE',
         });
 
@@ -79,7 +149,8 @@ async function deleteBirthday(birthdayId) {
             throw new Error('Failed to delete birthday');
         }
 
-        birthdays = birthdays.filter(b => b.id !== birthdayId);
+        birthdays = birthdays.filter(b => b.id !== deletingBirthdayId);
+        closeDeleteModal();
         renderCalendar();
         renderBirthdaysList();
         renderUpcomingBirthdays();
@@ -87,6 +158,16 @@ async function deleteBirthday(birthdayId) {
     } catch (error) {
         showNotification('Error deleting birthday', 'error');
     }
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    modal.classList.remove('show');
+    deletingBirthdayId = null;
+}
+
+async function deleteBirthday(birthdayId) {
+    showDeleteConfirmation(birthdayId);
 }
 
 // Form Handler
@@ -350,27 +431,89 @@ function renderUpcomingBirthdays() {
     });
 }
 
+// Search Functionality
+function handleSearch(e) {
+    searchQuery = e.target.value.toLowerCase().trim();
+    const clearBtn = document.getElementById('clearSearch');
+    
+    if (searchQuery) {
+        clearBtn.style.display = 'flex';
+    } else {
+        clearBtn.style.display = 'none';
+    }
+    
+    renderBirthdaysList();
+}
+
+function clearSearchInput() {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.value = '';
+    searchQuery = '';
+    document.getElementById('clearSearch').style.display = 'none';
+    renderBirthdaysList();
+}
+
+function filterBirthdays(birthdaysList) {
+    if (!searchQuery) {
+        return birthdaysList;
+    }
+    
+    return birthdaysList.filter(birthday => 
+        birthday.name.toLowerCase().includes(searchQuery)
+    );
+}
+
+function highlightText(text, query) {
+    if (!query) return text;
+    const regex = new RegExp(`(${query})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
+}
+
 // Render Birthdays List
 function renderBirthdaysList() {
     const list = document.getElementById('birthdaysList');
+    const resultsCount = document.getElementById('searchResultsCount');
     list.innerHTML = '';
 
     if (birthdays.length === 0) {
         list.innerHTML = '<div class="empty-state">No birthdays added yet. Add one above!</div>';
+        resultsCount.textContent = '';
         return;
     }
 
     // Sort by next occurrence (upcoming first)
     const sorted = getUpcomingBirthdays();
+    
+    // Filter by search query
+    filteredBirthdays = filterBirthdays(sorted);
+    
+    // Update results count
+    if (searchQuery) {
+        resultsCount.textContent = `${filteredBirthdays.length} of ${sorted.length} birthdays`;
+        resultsCount.style.display = 'block';
+    } else {
+        resultsCount.textContent = '';
+        resultsCount.style.display = 'none';
+    }
 
-    sorted.forEach((birthday, index) => {
+    if (filteredBirthdays.length === 0 && searchQuery) {
+        list.innerHTML = '<div class="empty-state">No birthdays found matching your search.</div>';
+        return;
+    }
+
+    filteredBirthdays.forEach((birthday, index) => {
         const item = document.createElement('div');
         item.className = 'birthday-item';
         item.style.animationDelay = `${index * 0.05}s`;
         
+        const highlightedName = highlightText(birthday.name, searchQuery);
+        
         item.innerHTML = `
-            <span>${birthday.name} - ${monthNames[birthday.month]} ${birthday.day}</span>
-            <button class="delete-btn" onclick="deleteBirthday(${birthday.id})">Delete</button>
+            <span>${highlightedName} - ${monthNames[birthday.month]} ${birthday.day}</span>
+            <div class="birthday-actions">
+                <button class="edit-btn" onclick="editBirthday(${birthday.id})">Edit</button>
+                <button class="delete-btn" onclick="deleteBirthday(${birthday.id})">Delete</button>
+            </div>
         `;
         list.appendChild(item);
     });
@@ -412,6 +555,10 @@ function showDayModal(day, month, year, dayBirthdays) {
             birthdayItem.className = 'day-modal-birthday';
             birthdayItem.innerHTML = `
                 <span class="day-modal-birthday-name">${birthday.name}</span>
+                <div class="day-modal-birthday-actions">
+                    <button class="edit-btn" onclick="editBirthday(${birthday.id})">Edit</button>
+                    <button class="delete-btn" onclick="deleteBirthday(${birthday.id})">Delete</button>
+                </div>
             `;
             modalBody.appendChild(birthdayItem);
         });
@@ -427,22 +574,30 @@ function closeDayModal() {
 
 // Setup modal event listeners
 function setupModal() {
-    const modal = document.getElementById('dayModal');
-    const modalClose = document.getElementById('dayModalClose');
-    const modalOverlay = modal?.querySelector('.day-modal-overlay');
+    const dayModal = document.getElementById('dayModal');
+    const dayModalClose = document.getElementById('dayModalClose');
+    const dayModalOverlay = dayModal?.querySelector('.day-modal-overlay');
     
-    if (modalClose) {
-        modalClose.addEventListener('click', closeDayModal);
+    if (dayModalClose) {
+        dayModalClose.addEventListener('click', closeDayModal);
     }
     
-    if (modalOverlay) {
-        modalOverlay.addEventListener('click', closeDayModal);
+    if (dayModalOverlay) {
+        dayModalOverlay.addEventListener('click', closeDayModal);
     }
     
     // Close on Escape key
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal?.classList.contains('show')) {
-            closeDayModal();
+        if (e.key === 'Escape') {
+            if (dayModal?.classList.contains('show')) {
+                closeDayModal();
+            }
+            if (document.getElementById('editModal')?.classList.contains('show')) {
+                closeEditModal();
+            }
+            if (document.getElementById('deleteModal')?.classList.contains('show')) {
+                closeDeleteModal();
+            }
         }
     });
 }
@@ -504,6 +659,121 @@ function setupSprinkleTrail() {
     document.addEventListener('mousemove', handleMouseMove);
 }
 
-// Make deleteBirthday available globally
+// Edit Birthday Functionality
+function editBirthday(birthdayId) {
+    const birthday = birthdays.find(b => b.id === birthdayId);
+    if (!birthday) return;
+    
+    editingBirthdayId = birthdayId;
+    const modal = document.getElementById('editModal');
+    
+    // Pre-fill form
+    document.getElementById('editPersonName').value = birthday.name;
+    document.getElementById('editMonth').value = birthday.month;
+    document.getElementById('editDay').value = birthday.day;
+    
+    // Update day max based on month
+    updateDayMax('editDay', birthday.month);
+    
+    // Close day modal if open
+    closeDayModal();
+    
+    modal.classList.add('show');
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editModal');
+    modal.classList.remove('show');
+    editingBirthdayId = null;
+    document.getElementById('editBirthdayForm').reset();
+}
+
+async function handleEditSubmit(e) {
+    e.preventDefault();
+    
+    if (!editingBirthdayId) return;
+    
+    const name = document.getElementById('editPersonName').value.trim();
+    const month = parseInt(document.getElementById('editMonth').value);
+    const day = parseInt(document.getElementById('editDay').value);
+    
+    // Validate day for the selected month
+    const daysInMonth = new Date(currentYear, month + 1, 0).getDate();
+    if (day > daysInMonth) {
+        showNotification(`${monthNames[month]} only has ${daysInMonth} days`, 'error');
+        return;
+    }
+    
+    try {
+        await updateBirthday(editingBirthdayId, name, month, day);
+        closeEditModal();
+        renderCalendar();
+        renderBirthdaysList();
+        renderUpcomingBirthdays();
+        showNotification('Birthday updated successfully!', 'success');
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+}
+
+function updateDayMax(dayInputId, month) {
+    const dayInput = document.getElementById(dayInputId);
+    const daysInMonth = new Date(currentYear, month + 1, 0).getDate();
+    dayInput.max = daysInMonth;
+    
+    // If current day value exceeds max, set to max
+    if (parseInt(dayInput.value) > daysInMonth) {
+        dayInput.value = daysInMonth;
+    }
+}
+
+// Update day max when month changes in edit form
+document.addEventListener('DOMContentLoaded', () => {
+    const editMonth = document.getElementById('editMonth');
+    if (editMonth) {
+        editMonth.addEventListener('change', (e) => {
+            updateDayMax('editDay', parseInt(e.target.value));
+        });
+    }
+    
+    const monthSelect = document.getElementById('month');
+    if (monthSelect) {
+        monthSelect.addEventListener('change', (e) => {
+            updateDayMax('day', parseInt(e.target.value));
+        });
+    }
+});
+
+// Number input controls
+function incrementDay(dayInputId = 'day') {
+    const dayInput = document.getElementById(dayInputId);
+    if (!dayInput) return;
+    
+    const currentValue = parseInt(dayInput.value) || 1;
+    const max = parseInt(dayInput.max) || 31;
+    const newValue = Math.min(currentValue + 1, max);
+    dayInput.value = newValue;
+    
+    // Trigger change event
+    dayInput.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function decrementDay(dayInputId = 'day') {
+    const dayInput = document.getElementById(dayInputId);
+    if (!dayInput) return;
+    
+    const currentValue = parseInt(dayInput.value) || 1;
+    const min = parseInt(dayInput.min) || 1;
+    const newValue = Math.max(currentValue - 1, min);
+    dayInput.value = newValue;
+    
+    // Trigger change event
+    dayInput.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+// Make functions available globally
 window.deleteBirthday = deleteBirthday;
+window.editBirthday = editBirthday;
+window.incrementDay = incrementDay;
+window.decrementDay = decrementDay;
 
