@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who's Birthday Is Next? - Birthday Tracker</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="background-animation">
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <span class="logo-icon">🎂</span>
+                    <span class="logo-text">Whose Birthday Is Next?</span>
+                </h1>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="upcoming-panel">
+                <div class="panel-header">
+                    <h2>Upcoming Birthdays</h2>
+                    <div class="header-accent"></div>
+                </div>
+                <div id="upcomingBirthdays" class="upcoming-birthdays"></div>
+            </div>
+
+            <div class="form-panel">
+                <div class="panel-header">
+                    <h2>Add a Birthday</h2>
+                    <div class="header-accent"></div>
+                </div>
+                
+                <form id="birthdayForm" class="birthday-form">
+                    <div class="input-group">
+                        <label for="personName" class="input-label">
+                            <span class="label-text">Name</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="personName" 
+                            class="input-field" 
+                            required 
+                            placeholder="Enter name"
+                            autocomplete="off"
+                        >
+                        <div class="input-underline"></div>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="month" class="input-label">
+                                <span class="label-text">Month</span>
+                            </label>
+                            <select id="month" class="input-field select-field" required>
+                                <option value="">Select Month</option>
+                                <option value="0">January</option>
+                                <option value="1">February</option>
+                                <option value="2">March</option>
+                                <option value="3">April</option>
+                                <option value="4">May</option>
+                                <option value="5">June</option>
+                                <option value="6">July</option>
+                                <option value="7">August</option>
+                                <option value="8">September</option>
+                                <option value="9">October</option>
+                                <option value="10">November</option>
+                                <option value="11">December</option>
+                            </select>
+                            <div class="input-underline"></div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="day" class="input-label">
+                                <span class="label-text">Day</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                id="day" 
+                                class="input-field" 
+                                min="1" 
+                                max="31" 
+                                required 
+                                placeholder="Day"
+                                autocomplete="off"
+                            >
+                            <div class="input-underline"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <span class="btn-text">Add a Birthday</span>
+                        <span class="btn-icon">+</span>
+                    </button>
+                </form>
+
+                <div class="birthdays-list-panel">
+                    <div class="panel-header">
+                        <h3>All Birthdays</h3>
+                        <div class="header-accent"></div>
+                    </div>
+                    <div id="birthdaysList" class="birthdays-list"></div>
+                </div>
+            </div>
+
+            <div class="calendar-panel">
+                <div class="panel-header">
+                    <h2>Calendar</h2>
+                    <div class="header-accent"></div>
+                </div>
+
+                <div class="month-navigation">
+                    <button id="prevMonth" class="nav-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 18l-6-6 6-6"/>
+                        </svg>
+                    </button>
+                    <button id="todayBtn" class="nav-btn today-btn">Today</button>
+                    <h3 id="currentMonth" class="current-month"></h3>
+                    <button id="nextMonth" class="nav-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendar will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <!-- Calendar Day Modal -->
+    <div id="dayModal" class="day-modal">
+        <div class="day-modal-overlay"></div>
+        <div class="day-modal-content">
+            <div class="day-modal-header">
+                <h3 id="dayModalTitle"></h3>
+                <button class="day-modal-close" id="dayModalClose">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="dayModalBody" class="day-modal-body">
+                <!-- Birthdays will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
+
